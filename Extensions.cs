@@ -1,5 +1,4 @@
 ﻿using PixelInternalAPI.Extensions;
-using UnityEngine;
 
 namespace StackableItems
 {
@@ -21,6 +20,17 @@ namespace StackableItems
 				i = (i + 1) % max;
 			}
 			return -1;
+		}
+
+		public static int[] NewStack(this int[] targetStack) => //System.Array.Copy DOESN'T WORK, WTF
+			targetStack.NewStack(targetStack.Length);
+
+		public static int[] NewStack(this int[] targetStack, int length)
+		{
+			var stack = new int[length];
+			for (int i = 0; i < length; i++)
+				stack[i] = targetStack[i];
+			return stack;
 		}
 	}
 }

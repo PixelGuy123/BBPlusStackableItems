@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 
 namespace StackableItems
 {
@@ -14,11 +15,26 @@ namespace StackableItems
 		
 		void OnDestroy()
 		{
-			cacheFromSaveItems = itemStacks;
+			cacheFromSaveItems = itemStacks.NewStack();
 		}
+
+		public void SaveItemStack()
+		{
+			if (itemStacks != null)
+				previousItemStacks = itemStacks.NewStack();
+			
+		}
+		public void TryLoadPrevItemStack()
+		{
+			if (previousItemStacks != null)
+				itemStacks = previousItemStacks.NewStack();
+		}
+
 
 		[SerializeField]
 		public int[] itemStacks;
+
+		int[] previousItemStacks = null;
 
 		public static StackData i;
 

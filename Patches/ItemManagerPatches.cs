@@ -34,7 +34,7 @@ namespace StackableItems.Patches
         [HarmonyPrefix]
         private static bool OverrideRemoveItemWithStacks(ItemManager __instance, int val)
         {
-            if (StackableItemsPlugin.prohibitedItemsForStack.Contains(__instance.items[val].itemType))
+            if (!__instance.items[val].itemType.IsItemAllowed())
                 return true;
 			if (--StackData.i.itemStacks[val] <= 0)
             {
@@ -56,7 +56,6 @@ namespace StackableItems.Patches
             if (idx != -1)
             {
 				StackData.i.itemStacks[idx]++;
-				Singleton<CoreGameManager>.Instance.GetHud(__instance.pm.playerNumber).UpdateItemIcon(idx, __instance.items[idx].itemSpriteSmall);
                 _UpdateSelect.Invoke(__instance, null);
                 return false;
             }
@@ -169,7 +168,6 @@ namespace StackableItems.Patches
             if (idx != -1)
             {
 				StackData.i.itemStacks[idx]++;
-				Singleton<CoreGameManager>.Instance.GetHud(__instance.pm.playerNumber).UpdateItemIcon(idx, __instance.items[idx].itemSpriteSmall);
 				_UpdateSelect.Invoke(__instance, null);
 				return false;
             }

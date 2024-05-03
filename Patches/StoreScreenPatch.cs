@@ -67,8 +67,8 @@ namespace StackableItems.Patches
 		[HarmonyPostfix]
 		static void UpdateStackInfo()
 		{
-			for (int i = 0; i < StackData.i.itemStacks.Length; i++)
-				StackData.i.itemStacks[i] = itemStacks[i];
+			StackData.i.itemStacks = itemStacks.NewStack(StackData.i.itemStacks.Length);
+			StackData.i.SaveItemStack();
 		}
 
 		[HarmonyPatch("BuyItem")]

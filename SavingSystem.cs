@@ -20,7 +20,7 @@ namespace StackableItems
 			int[] nums = new int[reader.ReadInt32()];
 			for (int i = 0; i < nums.Length; i++)
 				nums[i] = Mathf.Min(StackData.maximumStackAllowed, reader.ReadInt32());
-			StackData.i.itemStacks = nums;
+			StackData.cacheFromSaveItems = nums;
 		}
 
 		public override void Reset()
@@ -30,7 +30,14 @@ namespace StackableItems
 		public override void OnCGMCreated(CoreGameManager instance, bool isFromSavedGame)
 		{
 			base.OnCGMCreated(instance, isFromSavedGame);
-			instance.gameObject.AddComponent<StackData>().itemStacks = StackData.cacheFromSaveItems == null || !isFromSavedGame ? new int[templateSize] : StackData.cacheFromSaveItems;
+			var comp = instance.gameObject.AddComponent<StackData>();
+			if (StackData.cacheFromSaveItems != null && isFromSavedGame)
+			{
+				comp.itemStacks = StackData.cacheFromSaveItems.NewStack();
+				StackData.cacheFromSaveItems = null;
+				return;
+			}
+			comp.itemStacks = new int[templateSize];
 			StackData.cacheFromSaveItems = null;
 		}
 
