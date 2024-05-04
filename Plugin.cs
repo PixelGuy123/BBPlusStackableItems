@@ -151,9 +151,7 @@ namespace StackableItems
 		}
 
 		static AdjustmentBars stackBar;
-
-		public static void AddModdedProhibitedItem(Items item) => // If mods wanna add items to be non stackable (in very specific cases, such as quarter pouch that convert some items into its own currency)
-			prohibitedItemsForStack.Add(item);
+		public static HashSet<Items> NonStackableItems => prohibitedItemsForStack;
 
 		internal static HashSet<Items> prohibitedItemsForStack = [Items.None];
 
