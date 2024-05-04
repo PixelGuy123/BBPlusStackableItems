@@ -9,7 +9,6 @@ namespace StackableItems.Patches
     [HarmonyPatch(typeof(ItemManager))]
     public class ItemManagerPatches // Make stackables possible
     {
-        readonly static MethodInfo _UpdateSelect = AccessTools.Method(typeof(ItemManager), "UpdateSelect");
 
 		[HarmonyPatch("AddItem", [typeof(ItemObject)])]
 		[HarmonyReversePatch(HarmonyReversePatchType.Original)]
@@ -42,7 +41,7 @@ namespace StackableItems.Patches
 
 				return true;
             }
-            _UpdateSelect.Invoke(__instance, null);
+			__instance.UpdateSelect();
 
             return false;
         }
@@ -56,8 +55,8 @@ namespace StackableItems.Patches
             if (idx != -1)
             {
 				StackData.i.itemStacks[idx]++;
-                _UpdateSelect.Invoke(__instance, null);
-                return false;
+				__instance.UpdateSelect();
+				return false;
             }
 
 			int i = __instance.selectedItem;
@@ -97,7 +96,7 @@ namespace StackableItems.Patches
 			if (__instance.items[__instance.selectedItem].itemType != __state)
 			{
 				StackData.i.itemStacks[__instance.selectedItem] = 1; // Fix count
-				_UpdateSelect.Invoke(__instance, null);
+				__instance.UpdateSelect();
 			}
 		}
 
@@ -168,7 +167,7 @@ namespace StackableItems.Patches
             if (idx != -1)
             {
 				StackData.i.itemStacks[idx]++;
-				_UpdateSelect.Invoke(__instance, null);
+				__instance.UpdateSelect();
 				return false;
             }
             int i = __instance.selectedItem;

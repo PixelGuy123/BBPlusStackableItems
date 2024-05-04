@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System;
 
 namespace StackableItems
 {
@@ -38,7 +37,7 @@ namespace StackableItems
 
 		public static StackData i;
 
-		public static int maximumStackAllowed = 5;
+		public static int maximumStackAllowed;
 
 		internal static int[] cacheFromSaveItems = null;
 	}

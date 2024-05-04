@@ -1,12 +1,16 @@
 ﻿using System.Collections;
 using UnityEngine;
+using PixelInternalAPI.Components;
+using TMPro;
 
 namespace StackableItems
 {
-	public class TrashcanComponent : EnvironmentObject, IClickable<int>
+	public class TrashcanComponent : ModdedEnvironmentObject, IClickable<int>
 	{
 		public void Clicked(int player) // Intentionally not very readable lmao
 		{
+			if (uses <= 0) return;
+
 			if (Singleton<CoreGameManager>.Instance.GetPlayer(player).itm.items[Singleton<CoreGameManager>.Instance.GetPlayer(player).itm.selectedItem].itemType != Items.None)
 			{
 				Singleton<CoreGameManager>.Instance.GetPlayer(player).itm
@@ -18,40 +22,78 @@ namespace StackableItems
 						StopCoroutine(animation);
 					animation = StartCoroutine(Animation());
 				}
+				if (--uses <= 0)
+				{
+					usesRender.text = "X";
+					usesRender.color = Color.red;
+					usesRender.fontWeight = FontWeight.Bold;
+				}
+				else usesRender.text = uses.ToString();
 			}
 		}
 
 		public void ClickableSighted(int player) { }
 		public void ClickableUnsighted(int player) { }
-		public bool ClickableHidden() => false;
+		public bool ClickableHidden() => uses <= 0;
 		public bool ClickableRequiresNormalHeight() => true;
 
 		IEnumerator Animation()
 		{
-			Vector3 scale = Vector3.one;
-			Vector3 target = Vector3.one + Vector3.up * 1.4f;
+			Vector3 startsize = renderer.localScale;
+			Vector3 targetsize = startsize + Vector3.up * 0.2f;
+
+			Vector3 startpos = renderer.localPosition;
+			Vector3 targetPos = startpos + Vector3.up * 0.3f;
 			float time = 0f;
-			while (time < 1f)
+			while (true)
 			{
-				time += ec.EnvironmentTimeScale * 15f;
-				scale = Vector3.Lerp(scale, target, time);
-				renderer.localScale = scale;
+				time += ec.EnvironmentTimeScale * 15f * Time.deltaTime;
+				if (time >= 1f)
+				{
+					renderer.localScale = targetsize;
+					renderer.localPosition = targetPos;
+					break;
+				}
+				renderer.localScale = Vector3.Lerp(startsize, targetsize, time);
+				renderer.localPosition = Vector3.Lerp(startpos, targetPos, time);
 				yield return null;
 			}
-			scale = target;
-			target = Vector3.one;
+
+			targetsize = startsize;
+			startsize = renderer.localScale;
+
+			targetPos = startpos;
+			startpos = renderer.localPosition;
+
 			time = 0f;
-			while (time < 1f)
+			while (true)
 			{
-				time += ec.EnvironmentTimeScale * 15f;
-				scale = Vector3.Lerp(scale, target, time);
-				renderer.localScale = scale;
+				time += ec.EnvironmentTimeScale * 15f *  Time.deltaTime;
+				if (time >= 1f)
+				{
+					renderer.localScale = targetsize;
+					renderer.localPosition = targetPos;
+					break;
+				}
+				renderer.localScale = Vector3.Lerp(startsize, targetsize, time);
+				renderer.localPosition = Vector3.Lerp(startpos, targetPos, time);
 				yield return null;
 			}
-			renderer.localScale = target;
 
 			yield break;
 		}
+		public override void LoadingFinished()
+		{
+			base.LoadingFinished();
+			uses = Random.Range(1, 4);
+			usesRender.text = uses.ToString();
+		}
+
+		void Update() =>
+			usesRender.transform.localPosition = new(0f, 7f + (Mathf.Sin(Time.fixedTime * 4.5f) / 2f), 0f);
+		
+
+		int uses = 0; // Yes, random use value
 
 		[SerializeField]
 		internal SoundObject audThrow;
@@ -61,6 +103,9 @@ namespace StackableItems
 
 		[SerializeField]
 		internal Transform renderer;
+
+		[SerializeField]
+		internal TextMeshPro usesRender;
 
 		Coroutine animation;
 	}

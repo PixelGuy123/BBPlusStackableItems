@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using HarmonyLib;
+﻿using HarmonyLib;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace StackableItems
 {
@@ -17,17 +18,27 @@ namespace StackableItems
 					cells.RemoveAt(i--);
 
 			if (cells.Count == 0) return;
+			int max = rng.Next(1, roomAmount[room.category] + 1);
 
-			var cell = cells[rng.Next(cells.Count)];
-			var transform = builder.InstatiateEnvironmentObject(trashCan, cell, Direction.North);
-			room.entitySafeCells.Remove(cell.position);
+			for (int i = 0; i < max; i++)
+			{
+				if (cells.Count == 0) return;
 
-			trashCan.GetComponent<RendererContainer>().renderers.Do(cell.AddRenderer);
+				int idx = rng.Next(cells.Count);
+				var cell = cells[idx];
 
+				var t = builder.InstatiateEnvironmentObject(trashCan, cell, Direction.North);
+				room.entitySafeCells.Remove(cell.position);
+				t.GetComponents<Renderer>().Do(cell.AddRenderer);
+
+				cells.RemoveAt(idx);
+			}
 		}
 
-		const float randomChance = 0.7f;
+		const float randomChance = 0.9f;
 
 		internal static GameObject trashCan;
+
+		readonly static Dictionary<RoomCategory, int> roomAmount = new() { { RoomCategory.Class, 1}, { RoomCategory.Faculty, 4}, { RoomCategory.Office, 2 } };
 	}
 }
