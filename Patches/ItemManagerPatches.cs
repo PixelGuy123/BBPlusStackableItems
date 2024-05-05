@@ -42,14 +42,21 @@ namespace StackableItems.Patches
 				return true;
             }
 			__instance.UpdateSelect();
+			__instance.UpdateStackOrganization(val);
 
             return false;
         }
 
         [HarmonyPatch("AddItem", [typeof(ItemObject)])]
         [HarmonyPrefix]
-        private static bool OverrideItemAdd(ItemManager __instance, ItemObject item, out Items __state)
+        private static bool OverrideItemAdd(ItemManager __instance, ItemObject item, out Items? __state)
         {
+			if (StackableItemsPlugin.itemsToFullyIgnore.Contains(item.itemType))
+			{
+				__state = null;
+				return true;
+			}
+
 			__state = __instance.items[__instance.selectedItem].itemType;
 			int idx = __instance.HasStackableItem(item);
             if (idx != -1)
@@ -91,8 +98,10 @@ namespace StackableItems.Patches
 
 		[HarmonyPatch("AddItem", [typeof(ItemObject)])]
 		[HarmonyPostfix]
-		private static void FixStackCountIfNeeded(ItemManager __instance, Items __state)
+		private static void FixStackCountIfNeeded(ItemManager __instance, Items? __state)
 		{
+			if (__state == null) return;
+
 			if (__instance.items[__instance.selectedItem].itemType != __state)
 			{
 				StackData.i.itemStacks[__instance.selectedItem] = 1; // Fix count
@@ -159,7 +168,9 @@ namespace StackableItems.Patches
         [HarmonyPrefix]
         private static bool StopThisIfSelectingStackedSelection(ItemManager __instance, ItemObject item, Pickup pickup)
         {
-            if (!__instance.InventoryFull())
+			if (StackableItemsPlugin.itemsToFullyIgnore.Contains(item.itemType)) return true;
+
+			if (!__instance.InventoryFull())
                 return true;
 
             int idx = __instance.HasStackableItem(item);

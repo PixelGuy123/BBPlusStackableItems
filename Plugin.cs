@@ -16,7 +16,6 @@ using UnityEngine.AI;
 using TMPro;
 using PixelInternalAPI.Components;
 using MTM101BaldAPI.OptionsAPI;
-using System.Xml;
 
 namespace StackableItems
 {
@@ -40,8 +39,7 @@ namespace StackableItems
 				prohibitedItemsForStack.AddRange(MTM101BaldiDevAPI.itemMetadata.GetAllWithFlags(ItemFlags.MultipleUse) // Get all items with MultipleUse, so they can't be stackable
 					.ToValues()
 					.Select(x => x.itemType));
-
-				prohibitedItemsForStack.AddRange(MTM101BaldiDevAPI.itemMetadata.GetAllWithFlags(ItemFlags.NoInventory) // Get all items with NoInventory, so they can't be stackable
+				itemsToFullyIgnore.AddRange(MTM101BaldiDevAPI.itemMetadata.GetAllWithFlags(ItemFlags.NoInventory) // Get all items with NoInventory, so they can't be stackable (neither just not work)
 					.ToValues()
 					.Select(x => x.itemType));
 
@@ -154,6 +152,8 @@ namespace StackableItems
 		public static HashSet<Items> NonStackableItems => prohibitedItemsForStack;
 
 		internal static HashSet<Items> prohibitedItemsForStack = [Items.None];
+
+		internal static HashSet<Items> itemsToFullyIgnore = [];
 
 		internal static string ModPath = string.Empty;
 

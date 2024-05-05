@@ -1,4 +1,5 @@
 ﻿using PixelInternalAPI.Extensions;
+using System.Collections.Generic;
 
 namespace StackableItems
 {
@@ -31,6 +32,44 @@ namespace StackableItems
 			for (int i = 0; i < length; i++)
 				stack[i] = targetStack[i];
 			return stack;
+		}
+
+		public static void UpdateStackOrganization(this ItemManager itm, int idx)
+		{
+			ItemObject item = itm.items[idx];
+			if (item.itemType == Items.None) return; // Skip if nothing there
+
+			List<KeyValuePair<int, int>> foundSize = [];
+			int max = itm.maxItem + 1;
+			int index = idx;
+			for (int i = 0; i <= max; i++)
+			{
+				index = (index + 1) % max;
+				if (idx != index && itm.items[index].itemType == item.itemType)
+					foundSize.Add(new(index, StackData.i.itemStacks[index]));
+
+			}
+			if (foundSize.Count == 0) return;
+
+			foreach (var size in foundSize)
+			{
+
+				int addition = size.Value + StackData.i.itemStacks[idx];
+				if (addition <= StackData.maximumStackAllowed)
+				{
+					itm.SetItem(itm.nothing, size.Key);
+					StackData.i.itemStacks[idx] = addition;
+				}
+				else
+				{
+					int required = StackData.maximumStackAllowed - StackData.i.itemStacks[idx];
+					StackData.i.itemStacks[size.Key] -= required;
+					StackData.i.itemStacks[idx] += required;
+				}
+
+			}
+			itm.UpdateSelect();
+
 		}
 	}
 }
