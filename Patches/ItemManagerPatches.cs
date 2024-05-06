@@ -15,18 +15,16 @@ namespace StackableItems.Patches
 		public static void AddItemOg(object instance, ItemObject item) =>
 			throw new System.NotImplementedException("stub");
 
-        [HarmonyPatch("UpdateSelect")]
-        [HarmonyPrefix]
-        private static bool OverrideItemSelectionName(ItemManager __instance)
+        [HarmonyPatch(typeof(HudManager), "SetItemSelect")]
+        [HarmonyPostfix]
+        private static void OverrideItemSelectionName(ref TMP_Text ___itemTitle)
         {
-            bool isNothing = StackableItemsPlugin.prohibitedItemsForStack.Contains(__instance.items[__instance.selectedItem].itemType);
-            if (!isNothing)
-            {
-                Singleton<CoreGameManager>.Instance.GetHud
-                    (__instance.pm.playerNumber).SetItemSelect
-                    (__instance.selectedItem, __instance.items[__instance.selectedItem].nameKey + $" ({__instance.GetStackFromSelItem()})"); // Just add the stack val
-            }
-            return isNothing;
+			if (___itemTitle == null) return;
+
+			var pm = Singleton<CoreGameManager>.Instance.GetPlayer(0);
+            if (pm && pm.itm.items[pm.itm.selectedItem].itemType.IsItemAllowed()) // Somehow pm.itm can be unassigned
+               ___itemTitle.text += $"\n({pm.itm.GetStackFromSelItem()})"; // Just add the stack val
+            
         }
 
         [HarmonyPatch("RemoveItem", [typeof(int)])]

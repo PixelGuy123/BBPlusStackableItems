@@ -16,10 +16,11 @@ using UnityEngine.AI;
 using TMPro;
 using PixelInternalAPI.Components;
 using MTM101BaldAPI.OptionsAPI;
+using System.Collections;
 
 namespace StackableItems
 {
-    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.0")]
+    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.1")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
 	public class StackableItemsPlugin : BaseUnityPlugin
@@ -32,24 +33,9 @@ namespace StackableItems
 			hasAnimationsMod = Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.newanimations");
 			ModPath = AssetLoader.GetModPath(this);
 
-			LoadingEvents.RegisterOnAssetsLoaded(AddTrashCansInEverything, false);
+			LoadingEvents.RegisterOnAssetsLoaded(Info, AddTrashCansInEverything(), false);
 
-			LoadingEvents.RegisterOnAssetsLoaded(() =>
-			{
-				prohibitedItemsForStack.AddRange(MTM101BaldiDevAPI.itemMetadata.GetAllWithFlags(ItemFlags.MultipleUse) // Get all items with MultipleUse, so they can't be stackable
-					.ToValues()
-					.Select(x => x.itemType));
-				itemsToFullyIgnore.AddRange(MTM101BaldiDevAPI.itemMetadata.GetAllWithFlags(ItemFlags.NoInventory) // Get all items with NoInventory, so they can't be stackable (neither just not work)
-					.ToValues()
-					.Select(x => x.itemType));
-
-				if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbpluslockers")) // BBPlusLockers support
-					TryAddProhibitedItem("Lockpick");
-
-				if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbextracontent")) // BBTimesSupport support
-					TryAddProhibitedItem("Present");
-			}
-			, true);
+			LoadingEvents.RegisterOnAssetsLoaded(Info, LoadLimitations(), true);
 
 			ModdedSaveGame.AddSaveHandler(new SaveItemStack(Info)); // Save stack properly
 			ResourceManager.AddReloadLevelCallback((man, nextlevel) =>
@@ -82,9 +68,31 @@ namespace StackableItems
 			catch { }
 		}
 
-		void AddTrashCansInEverything()
+		IEnumerator LoadLimitations()
 		{
+			yield return 1;
+			yield return "Registering unstackable items...";
+			prohibitedItemsForStack.AddRange(MTM101BaldiDevAPI.itemMetadata.GetAllWithFlags(ItemFlags.MultipleUse) // Get all items with MultipleUse, so they can't be stackable
+					.ToValues()
+					.Select(x => x.itemType));
+			itemsToFullyIgnore.AddRange(MTM101BaldiDevAPI.itemMetadata.GetAllWithFlags(ItemFlags.InstantUse) // Get all items with InstantUse, so they can't be stackable (neither just not work)
+				.ToValues()
+				.Select(x => x.itemType));
+
+			if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbpluslockers")) // BBPlusLockers support
+				TryAddProhibitedItem("Lockpick");
+
+			if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbextracontent")) // BBTimesSupport support
+				TryAddProhibitedItem("Present");
+
+			yield break;
+		}
+
+		IEnumerator AddTrashCansInEverything()
+		{
+			yield return 1;
 			// setup for trash can
+			yield return "Creating trash can prefab...";
 			var trash = ObjectCreationExtensions.CreateSpriteBillboard(AssetLoader.SpriteFromTexture2D(AssetLoader.TextureFromFile(Path.Combine(ModPath, "trashcan.png")), 75f)).AddSpriteHolder(3f, LayerStorage.iClickableLayer);
 			var trashHolder = trash.transform.parent;
 			trashHolder.name = "TrashCan";
@@ -119,7 +127,7 @@ namespace StackableItems
 
 			trashAcceptor.usesRender = trashIndicator;
 
-			trashHolder.gameObject.SetAsPrefab().AddAsGeneratorPrefab();
+			trashHolder.gameObject.ConvertToPrefab(true);
 
 			TrashCanSpawnFunction.trashCan = trashHolder.gameObject;
 			List<RoomCategory> allowedCats = [RoomCategory.Class, RoomCategory.Office, RoomCategory.Faculty];
@@ -127,7 +135,7 @@ namespace StackableItems
 			GenericExtensions.FindResourceObjects<RoomAsset>().DoIf(x => x.type == RoomType.Room && allowedCats.Contains(x.category), 
 				x => { x.AddRoomFunction<TrashCanSpawnFunction>(); allowedCats.Remove(x.category); });
 
-
+			yield break;
 		}
 
 		void OnMen(OptionsMenu instance)
