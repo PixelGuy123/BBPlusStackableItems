@@ -17,10 +17,11 @@ using TMPro;
 using PixelInternalAPI.Components;
 using MTM101BaldAPI.OptionsAPI;
 using System.Collections;
+using StackableItems.Patches;
 
 namespace StackableItems
 {
-    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.1")]
+    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.2")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
 	public class StackableItemsPlugin : BaseUnityPlugin
@@ -90,7 +91,7 @@ namespace StackableItems
 
 		IEnumerator AddTrashCansInEverything()
 		{
-			yield return 1;
+			yield return 2;
 			// setup for trash can
 			yield return "Creating trash can prefab...";
 			var trash = ObjectCreationExtensions.CreateSpriteBillboard(AssetLoader.SpriteFromTexture2D(AssetLoader.TextureFromFile(Path.Combine(ModPath, "trashcan.png")), 75f)).AddSpriteHolder(3f, LayerStorage.iClickableLayer);
@@ -134,6 +135,10 @@ namespace StackableItems
 
 			GenericExtensions.FindResourceObjects<RoomAsset>().DoIf(x => x.type == RoomType.Room && allowedCats.Contains(x.category), 
 				x => { x.AddRoomFunction<TrashCanSpawnFunction>(); allowedCats.Remove(x.category); });
+
+			// load slot
+			yield return "Loading slot sprite...";
+			StoreScreenPatch.slot = AssetLoader.SpriteFromTexture2D(AssetLoader.TextureFromFile(Path.Combine(ModPath, "cyanSlot.png")), 35f);
 
 			yield break;
 		}

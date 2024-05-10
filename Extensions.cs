@@ -71,5 +71,18 @@ namespace StackableItems
 			itm.UpdateSelect();
 
 		}
+
+		public static bool IsInventoryReallyFull(this ItemManager itm, Items item)
+		{
+			if (!itm.InventoryFull()) return false;
+			for (int i = 0; i <= itm.maxItem; i++)
+			{
+				if (itm.items[i].itemType == item && StackData.i.IsStackWithinLimit(i))
+					return false;
+			}
+				
+			
+			return true;
+		}
 	}
 }

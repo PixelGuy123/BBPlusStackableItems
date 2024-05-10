@@ -31,6 +31,12 @@ namespace StackableItems.Patches
 
 			static void AddTextToSlot(Transform slot, int stackVal, int stackIdx)
 			{
+				var img = new GameObject("StackIndicatorBg").AddComponent<Image>();
+				img.sprite = StoreScreenPatch.slot;
+				img.transform.SetParent(slot);
+				img.transform.localPosition = new(-0.8909f, -30.4f);
+				img.transform.localScale = Vector3.one * 0.25f;
+
 				var mesh = new GameObject("StackIndicator").AddComponent<TextMeshProUGUI>();
 				mesh.alignment = TextAlignmentOptions.Center;
 				mesh.color = Color.black;
@@ -38,12 +44,15 @@ namespace StackableItems.Patches
 
 
 				mesh.transform.SetParent(slot);
-				mesh.transform.localPosition = new(10f, -7.9455f);
+				mesh.transform.localPosition = new(-0.8909f, -29.089f);
 				mesh.transform.localScale = Vector3.one * 0.7f;
-				mesh.text = stackVal < 1 ? string.Empty : stackVal.ToString();
+				mesh.text = stackVal < 1 ? "-" : stackVal.ToString();
+
 				guis[stackIdx] = mesh;
 			}
 		}
+
+		internal static Sprite slot;
 
 		[HarmonyPatch("ClickInventory")]
 		[HarmonyPostfix]
@@ -58,9 +67,9 @@ namespace StackableItems.Patches
 				draggingStack = -1;
 			}
 			if (val < guis.Length)
-				guis[val].Text(___dragging || itemStacks[val] <= 0 ? string.Empty : itemStacks[val].ToString());
+				guis[val].Text(___dragging || itemStacks[val] <= 0 ? "-" : itemStacks[val].ToString());
 			if (___slotDragging < guis.Length)
-				guis[___slotDragging].Text(___dragging || itemStacks[___slotDragging] <= 0 ? string.Empty : itemStacks[___slotDragging].ToString());
+				guis[___slotDragging].Text(___dragging || itemStacks[___slotDragging] <= 0 ? "-" : itemStacks[___slotDragging].ToString());
 		}
 
 		[HarmonyPatch("Exit")]

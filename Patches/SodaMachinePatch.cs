@@ -8,9 +8,9 @@ namespace StackableItems.Patches
     {
 
         [HarmonyPatch("InsertItem")]
-        private static bool Prefix(SodaMachine __instance, PlayerManager pm) // This should fix the quarter issue
+        private static bool Prefix(SodaMachine __instance, PlayerManager pm, ItemObject ___item) // This should fix the quarter issue
         {
-            if (pm.itm.GetStackFromSelItem() > 1 && pm.itm.InventoryFull())
+            if (pm.itm.GetStackFromSelItem() > 1 && ((___item == null && pm.itm.InventoryFull()) || pm.itm.IsInventoryReallyFull(___item.itemType)))
             {
                 __instance.StartCoroutine(Delay(pm.itm, pm.itm.items[pm.itm.selectedItem]));
                 return false;
