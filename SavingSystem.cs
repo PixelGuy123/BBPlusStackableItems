@@ -17,10 +17,18 @@ namespace StackableItems
 
 		public override void Load(BinaryReader reader)
 		{
-			int[] nums = new int[reader.ReadInt32()];
-			for (int i = 0; i < nums.Length; i++)
-				nums[i] = Mathf.Min(StackData.maximumStackAllowed, reader.ReadInt32());
-			StackData.cacheFromSaveItems = nums;
+			try
+			{
+				int[] nums = new int[reader.ReadInt32()];
+				for (int i = 0; i < nums.Length; i++)
+					nums[i] = Mathf.Min(StackData.maximumStackAllowed, reader.ReadInt32());
+				StackData.cacheFromSaveItems = nums;
+			}
+			catch
+			{
+				Debug.LogWarning("Failed to load stack save. All the values have been set to default.");
+				StackData.cacheFromSaveItems = null;
+			}
 		}
 
 		public override void Reset()

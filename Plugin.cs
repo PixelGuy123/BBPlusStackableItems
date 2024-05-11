@@ -21,7 +21,7 @@ using StackableItems.Patches;
 
 namespace StackableItems
 {
-    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.2")]
+    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.3")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
 	public class StackableItemsPlugin : BaseUnityPlugin
@@ -50,11 +50,19 @@ namespace StackableItems
 			{
 				string p = Path.Combine(myPath, stackFileName);
 				if (isSave)
+				{
 					File.WriteAllText(p, StackData.maximumStackAllowed.ToString());
+					return;
+				}
 				else if (File.Exists(p))
-					StackData.maximumStackAllowed = int.Parse(File.ReadAllText(p));
-				else
-					StackData.maximumStackAllowed = 3;
+				{
+					if (int.TryParse(File.ReadAllText(p), out int res))
+					{
+						StackData.maximumStackAllowed = res;
+					}
+					return;
+				}
+				StackData.maximumStackAllowed = 3;
 			});
         }
 
