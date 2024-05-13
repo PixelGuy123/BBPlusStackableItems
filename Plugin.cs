@@ -119,7 +119,7 @@ namespace StackableItems
 			collider = trashAcceptor.gameObject.AddComponent<BoxCollider>();
 			collider.size = new Vector3(horizontalSize, 14f, horizontalSize);
 
-			trashAcceptor.audMan = trashHolder.gameObject.CreatePropagatedAudioManager(55f, 75f).SetAudioManagerAsPrefab();
+			trashAcceptor.audMan = trashHolder.gameObject.CreatePropagatedAudioManager(55f, 75f);
 
 			trashAcceptor.audThrow = ObjectCreators.CreateSoundObject(AssetLoader.AudioClipFromFile(Path.Combine(ModPath, "throwTrash.wav")), string.Empty, SoundType.Voice, Color.white);
 			trashAcceptor.audThrow.subtitle = false; // no subs
