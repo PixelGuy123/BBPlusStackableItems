@@ -2,6 +2,7 @@
 using MTM101BaldAPI.SaveSystem;
 using System.IO;
 using UnityEngine;
+using PixelInternalAPI;
 
 namespace StackableItems
 {
@@ -26,7 +27,7 @@ namespace StackableItems
 			}
 			catch
 			{
-				Debug.LogWarning("Failed to load stack save. All the values have been set to default.");
+				ResourceManager.RaiseLocalizedPopup(Info, "Er_StackLoad");
 				StackData.cacheFromSaveItems = null;
 			}
 		}

@@ -57,9 +57,8 @@ namespace StackableItems
 				else if (File.Exists(p))
 				{
 					if (int.TryParse(File.ReadAllText(p), out int res))
-					{
 						StackData.maximumStackAllowed = res;
-					}
+					else ResourceManager.RaiseLocalizedPopup(Info, "Er_StackConfigLoad");
 					return;
 				}
 				StackData.maximumStackAllowed = 3;
