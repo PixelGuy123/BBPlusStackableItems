@@ -11,7 +11,7 @@ namespace StackableItems
 		readonly BepInEx.PluginInfo Info = info;
 		public override BepInEx.PluginInfo pluginInfo => Info;
 		public override void Save(BinaryWriter writer)
-		{
+		{ 
 			writer.Write(StackData.i.itemStacks.Length);
 			StackData.i.itemStacks.Do(writer.Write);
 		}
