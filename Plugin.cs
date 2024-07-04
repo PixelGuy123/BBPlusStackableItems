@@ -114,6 +114,7 @@ namespace StackableItems
 
 			var colliderAI = trashCol.gameObject.AddComponent<NavMeshObstacle>();
 			colliderAI.size = collider.size + Vector3.up * 5f;
+			colliderAI.carving = true;
 
 			var trashAcceptor = trashHolder.gameObject.AddComponent<TrashcanComponent>();
 			collider = trashAcceptor.gameObject.AddComponent<BoxCollider>();
@@ -141,7 +142,7 @@ namespace StackableItems
 			List<RoomCategory> allowedCats = [RoomCategory.Class, RoomCategory.Office, RoomCategory.Faculty];
 
 			GenericExtensions.FindResourceObjects<RoomAsset>().DoIf(x => x.type == RoomType.Room && allowedCats.Contains(x.category), 
-				x => { x.AddRoomFunction<TrashCanSpawnFunction>(); allowedCats.Remove(x.category); });
+				x => { x.AddRoomFunctionToContainer<TrashCanSpawnFunction>(); allowedCats.Remove(x.category); });
 
 			// load slot
 			yield return "Loading slot sprite...";
