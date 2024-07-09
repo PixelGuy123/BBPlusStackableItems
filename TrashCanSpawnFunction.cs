@@ -18,7 +18,7 @@ namespace StackableItems
 					cells.RemoveAt(i--);
 
 			if (cells.Count == 0) return;
-			int max = rng.Next(1, roomAmount[room.category] + 1);
+			int max = rng.Next(1, roomAmount.ContainsKey(room.category) ? roomAmount[room.category] + 1 : 3);
 
 			for (int i = 0; i < max; i++)
 			{
@@ -38,6 +38,9 @@ namespace StackableItems
 		const float randomChance = 0.9f;
 
 		internal static GameObject trashCan;
+
+		public static void AddTrashAmountToCategory(RoomCategory cat, int amountOfTrashes) =>
+			roomAmount.Add(cat, amountOfTrashes);
 
 		readonly static Dictionary<RoomCategory, int> roomAmount = new() { { RoomCategory.Class, 1}, { RoomCategory.Faculty, 4}, { RoomCategory.Office, 2 } };
 	}
