@@ -3,6 +3,7 @@ using TMPro;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Reflection;
+using System;
 
 namespace StackableItems.Patches
 {
@@ -72,6 +73,7 @@ namespace StackableItems.Patches
 				if (__instance.items[i].itemType == Items.None)
 				{
 					__instance.SetItem(item, i);
+					Singleton<CoreGameManager>.Instance.GetHud(__instance.pm.playerNumber).inventory.CollectItem(i, item);
 					return false;
 				}
 				i = (i + 1) % max;
@@ -85,6 +87,7 @@ namespace StackableItems.Patches
 				if (StackData.i.itemStacks[i] <= 1)
 				{
 					__instance.SetItem(item, i);
+					Singleton<CoreGameManager>.Instance.GetHud(__instance.pm.playerNumber).inventory.CollectItem(i, item);
 					return false;
 				}
 				i = (i + 1) % max;
@@ -191,7 +194,8 @@ namespace StackableItems.Patches
 
                     __instance.selectedItem = i;
                     __instance.SetItem(item, i);
-                    return false;
+					Singleton<CoreGameManager>.Instance.GetHud(__instance.pm.playerNumber).inventory.CollectItem(i, item);
+					return false;
                 }
                 i = (i + 1) % max;
             }
