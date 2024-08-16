@@ -56,11 +56,11 @@ namespace StackableItems
 				else if (File.Exists(p))
 				{
 					if (int.TryParse(File.ReadAllText(p), out int res))
-						StackData.maximumStackAllowed = res;
+						StackData.maximumStackAllowed = Mathf.Clamp(res, minStack, maxStack);
 					else ResourceManager.RaiseLocalizedPopup(Info, "Er_StackConfigLoad");
 					return;
 				}
-				StackData.maximumStackAllowed = 3;
+				StackData.maximumStackAllowed = minStack;
 			});
         }
 
@@ -153,7 +153,7 @@ namespace StackableItems
 			var text = CustomOptionsCore.CreateText(instance, new Vector2(-14.83f, -16.41f), $"{Singleton<LocalizationManager>.Instance.GetLocalizedText("Opt_StackSizeDisplay")} {StackData.maximumStackAllowed}");
 			stackBar = CustomOptionsCore.CreateAdjustmentBar(instance, new Vector2(31.6f, -61.2f), "StackSize", 5, "Tip_StackSize", StackData.maximumStackAllowed, () =>
 			{
-				StackData.maximumStackAllowed = Mathf.Clamp(stackBar.GetRaw() + 2, 2, 7);
+				StackData.maximumStackAllowed = Mathf.Clamp(stackBar.GetRaw() + minStack, minStack, maxStack);
 				text.textBox.text = $"{Singleton<LocalizationManager>.Instance.GetLocalizedText("Opt_StackSizeDisplay")} {StackData.maximumStackAllowed}";
 			});
 			// attach everything to the options menu
@@ -174,5 +174,7 @@ namespace StackableItems
 		internal static bool hasAnimationsMod = false;
 
 		const float horizontalSize = 1.5f;
+
+		internal const int minStack = 2, maxStack = 9;
     }
 }
