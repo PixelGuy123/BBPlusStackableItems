@@ -23,7 +23,7 @@ namespace StackableItems.Patches
 			if (___itemTitle == null) return;
 
 			var pm = Singleton<CoreGameManager>.Instance.GetPlayer(0);
-            if (pm && pm.itm.items[pm.itm.selectedItem].itemType.IsItemAllowed()) // Somehow pm.itm can be unassigned
+            if (pm && pm.itm.items[pm.itm.selectedItem].IsItemAllowed()) // Somehow pm.itm can be unassigned
                ___itemTitle.text += $"\n({pm.itm.GetStackFromSelItem()})"; // Just add the stack val
             
         }
@@ -32,7 +32,7 @@ namespace StackableItems.Patches
         [HarmonyPrefix]
         private static bool OverrideRemoveItemWithStacks(ItemManager __instance, int val)
         {
-            if (!__instance.items[val].itemType.IsItemAllowed())
+            if (!__instance.items[val].IsItemAllowed())
                 return true;
 			if (--StackData.i.itemStacks[val] <= 0)
             {
@@ -50,7 +50,7 @@ namespace StackableItems.Patches
         [HarmonyPrefix]
         private static bool OverrideItemAdd(ItemManager __instance, ItemObject item, out Items? __state)
         {
-			if (StackableItemsPlugin.itemsToFullyIgnore.Contains(item.itemType))
+			if (StackableItemsPlugin.itemsToFullyIgnore.Contains(item))
 			{
 				__state = null;
 				return true;
@@ -159,7 +159,7 @@ namespace StackableItems.Patches
 
         static void AddToStack(ItemManager man, int val)
         {
-			if (man.items[val].itemType.IsItemAllowed() && StackData.i.IsStackWithinLimit(val))
+			if (man.items[val].IsItemAllowed() && StackData.i.IsStackWithinLimit(val))
 				StackData.i.itemStacks[val]++;
 		}
 
@@ -169,7 +169,7 @@ namespace StackableItems.Patches
         [HarmonyPrefix]
         private static bool StopThisIfSelectingStackedSelection(ItemManager __instance, ItemObject item, Pickup pickup)
         {
-			if (StackableItemsPlugin.itemsToFullyIgnore.Contains(item.itemType)) return true;
+			if (StackableItemsPlugin.itemsToFullyIgnore.Contains(item)) return true;
 
 			if (!__instance.InventoryFull())
                 return true;
@@ -209,7 +209,7 @@ namespace StackableItems.Patches
         [HarmonyPatch("SetItem")]
         [HarmonyPrefix]
         private static void StopThisIfSelectingStackedSelection(ItemObject item, int slot) =>
-		   StackData.i.itemStacks[slot] =  item.itemType.IsItemAllowed() ? 1 : 0; // Reset it since it it being set
+		   StackData.i.itemStacks[slot] = item.IsItemAllowed() ? 1 : 0; // Reset it since it it being set
     }
 
     [HarmonyPatch(typeof(HudManager), "SetItemSelect")]

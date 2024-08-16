@@ -47,7 +47,7 @@ namespace StackableItems
 		public static int GetStackFromSelItem(this ItemManager man) =>
 			StackData.i.itemStacks[man.selectedItem];
 			
-		public static bool IsItemAllowed(this Items item) =>
+		public static bool IsItemAllowed(this ItemObject item) =>
 			!StackableItemsPlugin.prohibitedItemsForStack.Contains(item);
 	}
 }

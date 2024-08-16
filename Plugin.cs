@@ -20,7 +20,7 @@ using System.Collections;
 
 namespace StackableItems
 {
-    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.4")]
+    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.5")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
 	public class StackableItemsPlugin : BaseUnityPlugin
@@ -66,31 +66,30 @@ namespace StackableItems
 
 		const string stackFileName = "stackMaxSize.txt";
 
-		void TryAddProhibitedItem(string moddedItem)
-		{
-			try
-			{
-				prohibitedItemsForStack.Add(EnumExtensions.GetFromExtendedName<Items>(moddedItem));
-			}
-			catch { }
-		}
+		List<ItemObject> PostLimitationLoad() => [];// For mods to patch and add their own items to be prohibited
 
 		IEnumerator LoadLimitations()
 		{
 			yield return 1;
 			yield return "Registering unstackable items...";
-			prohibitedItemsForStack.AddRange(MTM101BaldiDevAPI.itemMetadata.GetAllWithFlags(ItemFlags.MultipleUse) // Get all items with MultipleUse, so they can't be stackable
-					.ToValues()
-					.Select(x => x.itemType));
-			itemsToFullyIgnore.AddRange(MTM101BaldiDevAPI.itemMetadata.GetAllWithFlags(ItemFlags.InstantUse) // Get all items with InstantUse, so they can't be stackable (neither just not work)
-				.ToValues()
-				.Select(x => x.itemType));
+			prohibitedItemsForStack.AddRange(ItemMetaStorage.Instance.GetAllWithFlags(ItemFlags.MultipleUse) // Get all items with MultipleUse, so they can't be stackable
+					.ToValues());
+			prohibitedItemsForStack.AddRange(ItemMetaStorage.Instance.FindAll(x => x.id == Items.None).ToValues());
+			itemsToFullyIgnore.AddRange(ItemMetaStorage.Instance.GetAllWithFlags(ItemFlags.InstantUse) // Get all items with InstantUse, so they can't be stackable (neither just not work)
+				.ToValues());
+			itemsToFullyIgnore.AddRange(PostLimitationLoad());
 
 			if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbpluslockers")) // BBPlusLockers support
-				TryAddProhibitedItem("Lockpick");
+			{
+				var inf = Chainloader.PluginInfos["pixelguy.pixelmodding.baldiplus.bbpluslockers"].Instance.Info;
+				prohibitedItemsForStack.Add(ItemMetaStorage.Instance.FindByEnumFromMod(EnumExtensions.GetFromExtendedName<Items>("Lockpick"), inf).value);
+			}
 
 			if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbextracontent")) // BBTimesSupport support
-				TryAddProhibitedItem("Present");
+			{
+				var inf = Chainloader.PluginInfos["pixelguy.pixelmodding.baldiplus.bbextracontent"].Instance.Info;
+				prohibitedItemsForStack.Add(ItemMetaStorage.Instance.FindByEnumFromMod(EnumExtensions.GetFromExtendedName<Items>("Present"), inf).value);
+			}
 
 			yield break;
 		}
@@ -103,6 +102,7 @@ namespace StackableItems
 			var trash = ObjectCreationExtensions.CreateSpriteBillboard(AssetLoader.SpriteFromTexture2D(AssetLoader.TextureFromFile(Path.Combine(ModPath, "trashcan.png")), 75f)).AddSpriteHolder(3f, LayerStorage.iClickableLayer);
 			var trashHolder = trash.transform.parent;
 			trashHolder.name = "TrashCan";
+			trashHolder.gameObject.ConvertToPrefab(true);
 
 			var trashCol = new GameObject("TrashCollider");
 			trashCol.transform.SetParent(trashHolder);
@@ -135,8 +135,6 @@ namespace StackableItems
 
 			trashAcceptor.usesRender = trashIndicator;
 
-			trashHolder.gameObject.ConvertToPrefab(true);
-
 			TrashCanSpawnFunction.trashCan = trashHolder.gameObject;
 			List<RoomCategory> allowedCats = [RoomCategory.Class, RoomCategory.Office, RoomCategory.Faculty];
 
@@ -165,11 +163,11 @@ namespace StackableItems
 		}
 
 		static AdjustmentBars stackBar;
-		public static HashSet<Items> NonStackableItems => prohibitedItemsForStack;
+		public static HashSet<ItemObject> NonStackableItems => prohibitedItemsForStack;
 
-		internal static HashSet<Items> prohibitedItemsForStack = [Items.None];
+		internal static HashSet<ItemObject> prohibitedItemsForStack = []; // Ignore only for stacks, the mod still does its checks in the item
 
-		internal static HashSet<Items> itemsToFullyIgnore = [];
+		internal static HashSet<ItemObject> itemsToFullyIgnore = []; // Fully ignore means no mod check with the item at all (like points, for example)
 
 		internal static string ModPath = string.Empty;
 

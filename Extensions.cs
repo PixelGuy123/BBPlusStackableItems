@@ -6,8 +6,8 @@ namespace StackableItems
 	public static class Extensions
 	{
 		public static int HasStackableItem(this ItemManager itm, ItemObject itb)
-		{
-			if (!itb.itemType.IsItemAllowed())
+		{ 
+			if (!itb.IsItemAllowed())
 				return -1;
 
 			int i = itm.selectedItem;
