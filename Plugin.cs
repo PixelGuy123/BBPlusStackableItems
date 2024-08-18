@@ -151,7 +151,7 @@ namespace StackableItems
 			TextLocalizer TL = CustomOptionsCore.CreateText(instance, new Vector2(-5.45f, 65.03f), "Opt_StackSize");
 
 			var text = CustomOptionsCore.CreateText(instance, new Vector2(-14.83f, -16.41f), $"{Singleton<LocalizationManager>.Instance.GetLocalizedText("Opt_StackSizeDisplay")} {StackData.maximumStackAllowed}");
-			stackBar = CustomOptionsCore.CreateAdjustmentBar(instance, new Vector2(31.6f, -61.2f), "StackSize", 5, "Tip_StackSize", StackData.maximumStackAllowed, () =>
+			stackBar = CustomOptionsCore.CreateAdjustmentBar(instance, new Vector2(GenericExtensions.LinearEquation(maxStack - minStack, -7.425f, 68.725f), -61.2f), "StackSize", maxStack - minStack, "Tip_StackSize", StackData.maximumStackAllowed, () =>
 			{
 				StackData.maximumStackAllowed = Mathf.Clamp(stackBar.GetRaw() + minStack, minStack, maxStack);
 				text.textBox.text = $"{Singleton<LocalizationManager>.Instance.GetLocalizedText("Opt_StackSizeDisplay")} {StackData.maximumStackAllowed}";
