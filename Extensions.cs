@@ -1,5 +1,7 @@
-﻿using PixelInternalAPI.Extensions;
+﻿using MTM101BaldAPI.Registers;
+using PixelInternalAPI.Extensions;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace StackableItems
 {
@@ -83,6 +85,14 @@ namespace StackableItems
 				
 			
 			return true;
+		}
+
+		public static ItemObject[] ToAllItmValues(this ItemMetaData[] metas)
+		{
+			List<ItemObject> itms = [];
+			for (int i = 0; i < metas.Length; i++)
+				itms.AddRange(metas[i].itemObjects);
+			return [.. itms];
 		}
 	}
 }

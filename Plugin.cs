@@ -20,7 +20,7 @@ using System.Collections;
 
 namespace StackableItems
 {
-    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.5")]
+    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.5.1")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
 	public class StackableItemsPlugin : BaseUnityPlugin
@@ -73,10 +73,10 @@ namespace StackableItems
 			yield return 1;
 			yield return "Registering unstackable items...";
 			prohibitedItemsForStack.AddRange(ItemMetaStorage.Instance.GetAllWithFlags(ItemFlags.MultipleUse) // Get all items with MultipleUse, so they can't be stackable
-					.ToValues());
-			prohibitedItemsForStack.AddRange(ItemMetaStorage.Instance.FindAll(x => x.id == Items.None).ToValues());
+					.ToAllItmValues());
+			prohibitedItemsForStack.AddRange(ItemMetaStorage.Instance.FindAll(x => x.id == Items.None).ToAllItmValues());
 			itemsToFullyIgnore.AddRange(ItemMetaStorage.Instance.GetAllWithFlags(ItemFlags.InstantUse) // Get all items with InstantUse, so they can't be stackable (neither just not work)
-				.ToValues());
+				.ToAllItmValues());
 			itemsToFullyIgnore.AddRange(PostLimitationLoad());
 
 			if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbpluslockers")) // BBPlusLockers support
