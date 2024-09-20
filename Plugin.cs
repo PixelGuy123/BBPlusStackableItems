@@ -3,7 +3,6 @@ using HarmonyLib;
 using MTM101BaldAPI.Registers;
 using System.Collections.Generic;
 using MTM101BaldAPI;
-using System.Linq;
 using BepInEx.Bootstrap;
 using MTM101BaldAPI.SaveSystem;
 using PixelInternalAPI.Extensions;
@@ -20,7 +19,7 @@ using System.Collections;
 
 namespace StackableItems
 {
-    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.5.1")]
+    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.5.2")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
 	public class StackableItemsPlugin : BaseUnityPlugin

@@ -46,10 +46,8 @@ namespace StackableItems
 				StackData.cacheFromSaveItems = null;
 				return;
 			}
-			comp.itemStacks = new int[templateSize];
+			comp.itemStacks = new int[99]; // There can't be more than 99 slots in a freaking screen, right?
 			StackData.cacheFromSaveItems = null;
 		}
-
-		const int templateSize = 5;
 	}
 }
