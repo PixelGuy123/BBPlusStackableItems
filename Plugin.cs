@@ -22,6 +22,11 @@ namespace StackableItems
     [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.5.2")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
+
+[BepInDependency("pixelguy.pixelmodding.baldiplus.bbpluslockers", BepInDependency.DependencyFlags.SoftDependency)]
+
+[BepInDependency("pixelguy.pixelmodding.baldiplus.bbextracontent", BepInDependency.DependencyFlags.SoftDependency)]
+
 	public class StackableItemsPlugin : BaseUnityPlugin
     {
         private void Awake()
