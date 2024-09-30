@@ -1,36 +1,34 @@
 ﻿using BepInEx;
-using HarmonyLib;
-using MTM101BaldAPI.Registers;
-using System.Collections.Generic;
-using MTM101BaldAPI;
 using BepInEx.Bootstrap;
-using MTM101BaldAPI.SaveSystem;
-using PixelInternalAPI.Extensions;
-using PixelInternalAPI;
-using UnityEngine;
+using HarmonyLib;
+using MTM101BaldAPI;
 using MTM101BaldAPI.AssetTools;
-using System.IO;
-using PixelInternalAPI.Classes;
-using UnityEngine.AI;
-using TMPro;
-using PixelInternalAPI.Components;
 using MTM101BaldAPI.OptionsAPI;
+using MTM101BaldAPI.Registers;
+using MTM101BaldAPI.SaveSystem;
+using PixelInternalAPI;
+using PixelInternalAPI.Classes;
+using PixelInternalAPI.Components;
+using PixelInternalAPI.Extensions;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using TMPro;
+using UnityEngine;
+using UnityEngine.AI;
 
 namespace StackableItems
 {
-    [BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.5.2")]
+	[BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.5.3")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
 
-[BepInDependency("pixelguy.pixelmodding.baldiplus.bbpluslockers", BepInDependency.DependencyFlags.SoftDependency)]
-
-[BepInDependency("pixelguy.pixelmodding.baldiplus.bbextracontent", BepInDependency.DependencyFlags.SoftDependency)]
+	[BepInDependency("pixelguy.pixelmodding.baldiplus.bbpluslockers", BepInDependency.DependencyFlags.SoftDependency)]
 
 	public class StackableItemsPlugin : BaseUnityPlugin
-    {
-        private void Awake()
-        {
+	{
+		private void Awake()
+		{
 			Harmony h = new("pixelguy.pixelmodding.baldiplus.stackableitems");
 			h.PatchAllConditionals();
 
@@ -66,7 +64,7 @@ namespace StackableItems
 				}
 				StackData.maximumStackAllowed = minStack;
 			});
-        }
+		}
 
 		const string stackFileName = "stackMaxSize.txt";
 
@@ -87,12 +85,6 @@ namespace StackableItems
 			{
 				var inf = Chainloader.PluginInfos["pixelguy.pixelmodding.baldiplus.bbpluslockers"].Instance.Info;
 				prohibitedItemsForStack.Add(ItemMetaStorage.Instance.FindByEnumFromMod(EnumExtensions.GetFromExtendedName<Items>("Lockpick"), inf).value);
-			}
-
-			if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbextracontent")) // BBTimesSupport support
-			{
-				var inf = Chainloader.PluginInfos["pixelguy.pixelmodding.baldiplus.bbextracontent"].Instance.Info;
-				prohibitedItemsForStack.Add(ItemMetaStorage.Instance.FindByEnumFromMod(EnumExtensions.GetFromExtendedName<Items>("Present"), inf).value);
 			}
 
 			yield break;
@@ -116,7 +108,7 @@ namespace StackableItems
 			collider.size = new(horizontalSize, 1f, horizontalSize);
 
 			var colliderAI = trashCol.gameObject.AddComponent<NavMeshObstacle>();
-			colliderAI.size = collider.size + Vector3.up * 5f;
+			colliderAI.size = collider.size + (Vector3.up * 5f);
 			colliderAI.carving = true;
 
 			var trashAcceptor = trashHolder.gameObject.AddComponent<TrashcanComponent>();
@@ -142,7 +134,7 @@ namespace StackableItems
 			TrashCanSpawnFunction.trashCan = trashHolder.gameObject;
 			List<RoomCategory> allowedCats = [RoomCategory.Class, RoomCategory.Office, RoomCategory.Faculty];
 
-			GenericExtensions.FindResourceObjects<RoomAsset>().DoIf(x => x.type == RoomType.Room && allowedCats.Contains(x.category), 
+			GenericExtensions.FindResourceObjects<RoomAsset>().DoIf(x => x.type == RoomType.Room && allowedCats.Contains(x.category),
 				x => { x.AddRoomFunctionToContainer<TrashCanSpawnFunction>(); allowedCats.Remove(x.category); });
 
 			yield break;
@@ -180,5 +172,5 @@ namespace StackableItems
 		const float horizontalSize = 1.5f;
 
 		internal const int minStack = 2, maxStack = 9;
-    }
+	}
 }
