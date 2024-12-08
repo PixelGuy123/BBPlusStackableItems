@@ -19,7 +19,7 @@ using UnityEngine.AI;
 
 namespace StackableItems
 {
-	[BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.5.3")]
+	[BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.6")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
 
@@ -39,6 +39,8 @@ namespace StackableItems
 
 			LoadingEvents.RegisterOnAssetsLoaded(Info, LoadLimitations(), true);
 
+			AssetLoader.LoadLocalizationFolder(Path.Combine(ModPath, "Language", "English"), Language.English);
+
 			ModdedSaveGame.AddSaveHandler(new SaveItemStack(Info)); // Save stack properly
 			ResourceManager.AddReloadLevelCallback((man, nextlevel) =>
 			{
@@ -46,7 +48,7 @@ namespace StackableItems
 				else StackData.i.TryLoadPrevItemStack();
 			});
 
-			CustomOptionsCore.OnMenuInitialize += OnMen; // Copypaste from QuarterPouch lmao. I can't figure out the OptionsMenuAPI rn.
+			CustomOptionsCore.OnMenuInitialize += (optInstance, handler) => handler.AddCategory<StackableOptionsCat>("Stack Config"); // Copypaste from QuarterPouch lmao. I can't figure out the OptionsMenuAPI rn.
 			ModdedSaveSystem.AddSaveLoadAction(this, (bool isSave, string myPath) =>
 			{
 				string p = Path.Combine(myPath, stackFileName);
@@ -95,13 +97,13 @@ namespace StackableItems
 			yield return 2;
 			// setup for trash can
 			yield return "Creating trash can prefab...";
-			var trash = ObjectCreationExtensions.CreateSpriteBillboard(AssetLoader.SpriteFromTexture2D(AssetLoader.TextureFromFile(Path.Combine(ModPath, "trashcan.png")), 75f)).AddSpriteHolder(3f, LayerStorage.iClickableLayer);
-			var trashHolder = trash.transform.parent;
-			trashHolder.name = "TrashCan";
-			trashHolder.gameObject.ConvertToPrefab(true);
+			var trash = ObjectCreationExtensions.CreateSpriteBillboard(AssetLoader.SpriteFromTexture2D(AssetLoader.TextureFromFile(Path.Combine(ModPath, "trashcan.png")), 75f)).AddSpriteHolder(out var trashCanRenderer, 3f, LayerStorage.iClickableLayer);
+			trash.name = "TrashCan";
+			trashCanRenderer.name = "TrashCanRenderer";
+			trash.gameObject.ConvertToPrefab(true);
 
 			var trashCol = new GameObject("TrashCollider");
-			trashCol.transform.SetParent(trashHolder);
+			trashCol.transform.SetParent(trash.transform);
 			trashCol.transform.localPosition = Vector3.zero;
 
 			var collider = trashCol.gameObject.AddComponent<BoxCollider>();
@@ -111,11 +113,11 @@ namespace StackableItems
 			colliderAI.size = collider.size + (Vector3.up * 5f);
 			colliderAI.carving = true;
 
-			var trashAcceptor = trashHolder.gameObject.AddComponent<TrashcanComponent>();
+			var trashAcceptor = trash.gameObject.AddComponent<TrashcanComponent>();
 			collider = trashAcceptor.gameObject.AddComponent<BoxCollider>();
 			collider.size = new Vector3(horizontalSize, 14f, horizontalSize);
 
-			trashAcceptor.audMan = trashHolder.gameObject.CreatePropagatedAudioManager(55f, 75f);
+			trashAcceptor.audMan = trash.gameObject.CreatePropagatedAudioManager(55f, 75f);
 
 			trashAcceptor.audThrow = ObjectCreators.CreateSoundObject(AssetLoader.AudioClipFromFile(Path.Combine(ModPath, "throwTrash.wav")), string.Empty, SoundType.Voice, Color.white);
 			trashAcceptor.audThrow.subtitle = false; // no subs
@@ -125,13 +127,13 @@ namespace StackableItems
 			var trashIndicator = new GameObject("TrashUsesIndicator").AddComponent<TextMeshPro>();
 			trashIndicator.alignment = TextAlignmentOptions.Center;
 			trashIndicator.gameObject.layer = LayerStorage.billboardLayer;
-			trashIndicator.transform.SetParent(trashHolder);
+			trashIndicator.transform.SetParent(trash.transform);
 
 			trashIndicator.gameObject.AddComponent<BillboardRotator>();
 
 			trashAcceptor.usesRender = trashIndicator;
 
-			TrashCanSpawnFunction.trashCan = trashHolder.gameObject;
+			TrashCanSpawnFunction.trashCan = trash.gameObject;
 			List<RoomCategory> allowedCats = [RoomCategory.Class, RoomCategory.Office, RoomCategory.Faculty];
 
 			GenericExtensions.FindResourceObjects<RoomAsset>().DoIf(x => x.type == RoomType.Room && allowedCats.Contains(x.category),
@@ -139,26 +141,6 @@ namespace StackableItems
 
 			yield break;
 		}
-
-		void OnMen(OptionsMenu instance)
-		{
-			if (Singleton<CoreGameManager>.Instance != null) return; // No settings in-game
-			GameObject ob = CustomOptionsCore.CreateNewCategory(instance, "Opt_StackItm");
-			TextLocalizer TL = CustomOptionsCore.CreateText(instance, new Vector2(-5.45f, 65.03f), "Opt_StackSize");
-
-			var text = CustomOptionsCore.CreateText(instance, new Vector2(-14.83f, -16.41f), $"{Singleton<LocalizationManager>.Instance.GetLocalizedText("Opt_StackSizeDisplay")} {StackData.maximumStackAllowed}");
-			stackBar = CustomOptionsCore.CreateAdjustmentBar(instance, new Vector2(GenericExtensions.LinearEquation(maxStack - minStack, -7.425f, 68.725f), -61.2f), "StackSize", maxStack - minStack, "Tip_StackSize", StackData.maximumStackAllowed, () =>
-			{
-				StackData.maximumStackAllowed = Mathf.Clamp(stackBar.GetRaw() + minStack, minStack, maxStack);
-				text.textBox.text = $"{Singleton<LocalizationManager>.Instance.GetLocalizedText("Opt_StackSizeDisplay")} {StackData.maximumStackAllowed}";
-			});
-			// attach everything to the options menu
-			stackBar.transform.SetParent(ob.transform, false);
-			text.transform.SetParent(ob.transform, false);
-			TL.transform.SetParent(ob.transform, false);
-		}
-
-		static AdjustmentBars stackBar;
 		public static HashSet<ItemObject> NonStackableItems => prohibitedItemsForStack;
 
 		internal static HashSet<ItemObject> prohibitedItemsForStack = []; // Ignore only for stacks, the mod still does its checks in the item
