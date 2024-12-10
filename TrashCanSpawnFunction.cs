@@ -12,7 +12,7 @@ namespace StackableItems
 			if (rng.NextDouble() > randomChance)
 				return;
 
-			var cells = room.GetTilesOfShape([TileShape.Corner], true);
+			var cells = room.GetTilesOfShape(TileShapeMask.Corner, true);
 			for (int i = 0; i < cells.Count; i++)
 				if (!room.entitySafeCells.Contains(cells[i].position))
 					cells.RemoveAt(i--);
