@@ -166,7 +166,7 @@ namespace StackableItems.Patches
 
         [HarmonyPatch("AddItem", [typeof(ItemObject), typeof(Pickup)])]
         [HarmonyPrefix]
-        private static bool StopThisIfSelectingStackedSelection(ItemManager __instance, ItemObject item, Pickup pickup)
+        private static bool StopThisIfSelectingStackedSelection(ItemManager __instance, ItemObject item, Pickup pickup, ref bool __result)
         {
 			if (StackableItemsPlugin.itemsToFullyIgnore.Contains(item)) return true;
 
@@ -179,6 +179,7 @@ namespace StackableItems.Patches
             {
 				StackData.i.itemStacks[idx]++;
 				__instance.UpdateSelect();
+				__result = true;
 				return false;
             }
             int i = __instance.selectedItem;
@@ -194,6 +195,7 @@ namespace StackableItems.Patches
                     __instance.selectedItem = i;
                     __instance.SetItem(item, i);
 					Singleton<CoreGameManager>.Instance.GetHud(__instance.pm.playerNumber).inventory.CollectItem(i, item);
+					__result = true;
 					return false;
                 }
                 i = (i + 1) % max;
