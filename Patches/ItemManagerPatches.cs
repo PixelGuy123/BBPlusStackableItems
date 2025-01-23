@@ -3,6 +3,7 @@ using TMPro;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Reflection;
+using UnityEngine;
 
 namespace StackableItems.Patches
 {
@@ -27,7 +28,27 @@ namespace StackableItems.Patches
             
         }
 
-        [HarmonyPatch("RemoveItem", [typeof(int)])]
+		[HarmonyPatch("RemoveItemSlot", [typeof(int)])]
+		[HarmonyPrefix]
+		static void UpdateStackSize(int val, int ___maxItem)
+		{
+			overrideSetItemPatch = true;
+			for (int i = val; i < ___maxItem; i++)
+			{
+				//Debug.Log($"Setting slot ({i}) to value ({StackData.i.itemStacks[i + 1]}) of index {i + 1}");
+				StackData.i.itemStacks[i] = StackData.i.itemStacks[i + 1]; // Just follows the logic that the game uses to remove one slot
+																			   // Adds two because the stack is decreased naturally, so it remains the same stack size
+			}
+			StackData.i.itemStacks[___maxItem] = 0;
+		}
+
+		[HarmonyPatch("RemoveItemSlot", [typeof(int)])]
+		[HarmonyPostfix]
+		static void RevertSetItemPatchOverride(int val, int ___maxItem) =>
+			overrideSetItemPatch = false;
+		
+
+		[HarmonyPatch("RemoveItem", [typeof(int)])]
         [HarmonyPrefix]
         private static bool OverrideRemoveItemWithStacks(ItemManager __instance, int val)
         {
@@ -207,10 +228,15 @@ namespace StackableItems.Patches
             return false;
         }
 
-        [HarmonyPatch("SetItem")]
-        [HarmonyPrefix]
-        private static void StopThisIfSelectingStackedSelection(ItemObject item, int slot) =>
-		   StackData.i.itemStacks[slot] = item.IsItemAllowed() ? 1 : 0; // Reset it since it it being set
+		[HarmonyPatch("SetItem")]
+		[HarmonyPrefix]
+		private static void StopThisIfSelectingStackedSelection(ItemObject item, int slot)
+		{
+			if (!overrideSetItemPatch)
+				StackData.i.itemStacks[slot] = item.IsItemAllowed() ? 1 : 0; // Reset it since it it being set
+		}
+
+		internal static bool overrideSetItemPatch = false;
     }
 
     [HarmonyPatch(typeof(HudManager), "SetItemSelect")]
