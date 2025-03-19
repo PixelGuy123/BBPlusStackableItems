@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace StackableItems
@@ -9,6 +10,7 @@ namespace StackableItems
 		public override void Build(LevelBuilder builder, System.Random rng)
 		{
 			base.Build(builder, rng);
+			this.builder = builder;
 			if (rng.NextDouble() > randomChance)
 				return;
 
@@ -25,15 +27,27 @@ namespace StackableItems
 				if (cells.Count == 0) return;
 
 				int idx = rng.Next(cells.Count);
-				var cell = cells[idx];
-
-				var t = builder.InstatiateEnvironmentObject(trashCan, cell, Direction.North);
-				room.entitySafeCells.Remove(cell.position);
-				t.GetComponents<Renderer>().Do(cell.AddRenderer);
-
+				structData.Add(new(trashCan, cells[idx].position, Direction.Null));
 				cells.RemoveAt(idx);
 			}
 		}
+
+		public override void OnGenerationFinished()
+		{
+			base.OnGenerationFinished();
+			if (!builder)
+				return;
+
+			foreach (var data in structData)
+			{
+				var cell = room.ec.CellFromPosition(data.position);
+				builder.InstatiateEnvironmentObject(trashCan, cell, Direction.North);
+				room.entitySafeCells.Remove(data.position);
+			}
+		}
+
+		LevelBuilder builder; // small workaround to instantiate environment objects
+		readonly List<StructureData> structData = [];
 
 		const float randomChance = 0.9f;
 
@@ -43,5 +57,27 @@ namespace StackableItems
 			roomAmount.Add(cat, amountOfTrashes);
 
 		readonly static Dictionary<RoomCategory, int> roomAmount = new() { { RoomCategory.Class, 1}, { RoomCategory.Faculty, 4}, { RoomCategory.Office, 2 } };
+	}
+
+	public class Structure_GenericEnvironmentSpawner : StructureBuilder
+	{
+		public override void Load(List<StructureData> data)
+		{
+			base.Load(data);
+			foreach (var dat in data)
+			{
+				var cell = ec.CellFromPosition(dat.position);
+				var obj = Instantiate(dat.prefab, cell.ObjectBase);
+				obj.transform.position = cell.FloorWorldPosition;
+				obj.transform.rotation = dat.direction.ToRotation();
+				var ecObj = obj.GetComponent<EnvironmentObject>();
+
+				if (ecObj)
+				{
+					ecObj.Ec = ec;
+					ecObj.LoadingFinished();
+				}
+			}
+		}
 	}
 }

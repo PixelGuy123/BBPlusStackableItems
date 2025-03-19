@@ -3,7 +3,6 @@ using TMPro;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Reflection;
-using UnityEngine;
 
 namespace StackableItems.Patches
 {
@@ -70,7 +69,7 @@ namespace StackableItems.Patches
         [HarmonyPrefix]
         private static bool OverrideItemAdd(ItemManager __instance, ItemObject item, out Items? __state)
         {
-			if (StackableItemsPlugin.itemsToFullyIgnore.Contains(item))
+			if (item.IsItemFullyIgnored())
 			{
 				__state = null;
 				return true;
@@ -189,7 +188,7 @@ namespace StackableItems.Patches
         [HarmonyPrefix]
         private static bool StopThisIfSelectingStackedSelection(ItemManager __instance, ItemObject item, Pickup pickup, ref bool __result)
         {
-			if (StackableItemsPlugin.itemsToFullyIgnore.Contains(item)) return true;
+			if (item.IsItemFullyIgnored()) return true;
 
 			if (!__instance.InventoryFull())
                 return true;

@@ -9,7 +9,7 @@ namespace StackableItems
 	{
 		public void Clicked(int player) // Intentionally not very readable lmao
 		{
-			if (uses <= 0) return;
+			if (uses <= 0 && !infiniteUses) return;
 
 			if (Singleton<CoreGameManager>.Instance.GetPlayer(player).itm.items[Singleton<CoreGameManager>.Instance.GetPlayer(player).itm.selectedItem].itemType != Items.None)
 			{
@@ -22,19 +22,22 @@ namespace StackableItems
 						StopCoroutine(animation);
 					animation = StartCoroutine(Animation());
 				}
-				if (--uses <= 0)
+				if (!infiniteUses)
 				{
-					usesRender.text = "X";
-					usesRender.color = Color.red;
-					usesRender.fontWeight = FontWeight.Bold;
+					if (--uses <= 0)
+					{
+						usesRender.text = "X";
+						usesRender.color = Color.red;
+						usesRender.fontWeight = FontWeight.Bold;
+					}
+					else usesRender.text = uses.ToString();
 				}
-				else usesRender.text = uses.ToString();
 			}
 		}
 
 		public void ClickableSighted(int player) { }
 		public void ClickableUnsighted(int player) { }
-		public bool ClickableHidden() => uses <= 0;
+		public bool ClickableHidden() => uses <= 0 && !infiniteUses;
 		public bool ClickableRequiresNormalHeight() => true;
 
 		IEnumerator Animation()
@@ -85,18 +88,31 @@ namespace StackableItems
 		public override void LoadingFinished()
 		{
 			base.LoadingFinished();
-			uses = Random.Range(1, 4);
+			uses = Random.Range(minUses, maxUses + 1);
 			usesRender.text = uses.ToString();
+			if (infiniteUses)
+				usesRender.gameObject.SetActive(false);
 		}
 
-		void Update() =>
+		void Update()
+		{
+			if (infiniteUses)
+				return;
+			
 			usesRender.transform.localPosition = new(0f, 7f + (Mathf.Sin(Time.fixedTime * 4.5f) / 2f), 0f);
+		}
 		
 
 		int uses = 0; // Yes, random use value
 
 		[SerializeField]
 		internal SoundObject audThrow;
+
+		[SerializeField]
+		internal bool infiniteUses = false;
+
+		[SerializeField]
+		internal int minUses = 1, maxUses = 3;
 
 		[SerializeField]
 		internal PropagatedAudioManager audMan;

@@ -19,7 +19,7 @@ using UnityEngine.AI;
 
 namespace StackableItems
 {
-	[BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.6.2")]
+	[BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.6.3")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
 
@@ -27,6 +27,8 @@ namespace StackableItems
 
 	public class StackableItemsPlugin : BaseUnityPlugin
 	{
+		public const string notAllowStackTag = "StackableItems_NotAllowStacking", fullyIgnoreItemTag = "StackableItems_FullyIgnoreItem";
+
 		private void Awake()
 		{
 			Harmony h = new("pixelguy.pixelmodding.baldiplus.stackableitems");
@@ -70,20 +72,12 @@ namespace StackableItems
 
 		const string stackFileName = "stackMaxSize.txt";
 
-		List<ItemObject> PostLimitationLoad() => [];// For mods to patch and add their own items to be prohibited
-
 		IEnumerator LoadLimitations()
 		{
 			yield return 1;
 			yield return "Registering unstackable items...";
-			prohibitedItemsForStack.AddRange(ItemMetaStorage.Instance.GetAllWithFlags(ItemFlags.MultipleUse) // Get all items with MultipleUse, so they can't be stackable
-					.ToAllItmValues());
-			prohibitedItemsForStack.AddRange(ItemMetaStorage.Instance.FindAll(x => x.id == Items.None).ToAllItmValues());
-			itemsToFullyIgnore.AddRange(ItemMetaStorage.Instance.GetAllWithFlags(ItemFlags.InstantUse) // Get all items with InstantUse, so they can't be stackable (neither just not work)
-				.ToAllItmValues());
-			itemsToFullyIgnore.AddRange(PostLimitationLoad());
 
-			if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbpluslockers")) // BBPlusLockers support
+			if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbpluslockers")) // The Legacy purpose in question lol
 			{
 				var inf = Chainloader.PluginInfos["pixelguy.pixelmodding.baldiplus.bbpluslockers"].Instance.Info;
 				prohibitedItemsForStack.Add(ItemMetaStorage.Instance.FindByEnumFromMod(EnumExtensions.GetFromExtendedName<Items>("Lockpick"), inf).value);
@@ -94,7 +88,7 @@ namespace StackableItems
 
 		IEnumerator AddTrashCansInEverything()
 		{
-			yield return 2;
+			yield return 3;
 			// setup for trash can
 			yield return "Creating trash can prefab...";
 			var trash = ObjectCreationExtensions.CreateSpriteBillboard(AssetLoader.SpriteFromTexture2D(AssetLoader.TextureFromFile(Path.Combine(ModPath, "trashcan.png")), 75f)).AddSpriteHolder(out var trashCanRenderer, 3f, LayerStorage.iClickableLayer);
@@ -136,16 +130,36 @@ namespace StackableItems
 			TrashCanSpawnFunction.trashCan = trash.gameObject;
 			List<RoomCategory> allowedCats = [RoomCategory.Class, RoomCategory.Office, RoomCategory.Faculty];
 
+			yield return "Adding Trash Can prefab to the room assets...";
+
 			GenericExtensions.FindResourceObjects<RoomAsset>().DoIf(x => x.type == RoomType.Room && allowedCats.Contains(x.category),
 				x => { x.AddRoomFunctionToContainer<TrashCanSpawnFunction>(); allowedCats.Remove(x.category); });
 
+			yield return "Adding a Trash Can to the pitstop...";
+
+			trash.gameObject.SetActive(false);
+			var infiniteUseTrashCan = Instantiate(trash);
+			trash.gameObject.SetActive(true);
+
+			infiniteUseTrashCan.gameObject.ConvertToPrefab(true);
+			infiniteUseTrashCan.name = "TrashCan_InfiniteUses";
+			infiniteUseTrashCan.GetComponent<TrashcanComponent>().infiniteUses = true;
+
+			var genericEnvBuilder = new GameObject("Structure_GenericEnvironmentBuilder").AddComponent<Structure_GenericEnvironmentSpawner>();
+			genericEnvBuilder.gameObject.ConvertToPrefab(true);
+
+			GenericExtensions.FindResourceObjectByName<LevelAsset>("Pitstop").structures.Add(new()
+			{
+				prefab = genericEnvBuilder,
+				data = [new(infiniteUseTrashCan.gameObject, new(36, 10), Direction.North)]
+			});
+
 			yield break;
 		}
+		[System.Obsolete($"Include the \"{notAllowStackTag}\" tag inside of your item meta data.")]
 		public static HashSet<ItemObject> NonStackableItems => prohibitedItemsForStack;
 
-		internal static HashSet<ItemObject> prohibitedItemsForStack = []; // Ignore only for stacks, the mod still does its checks in the item
-
-		internal static HashSet<ItemObject> itemsToFullyIgnore = []; // Fully ignore means no mod check with the item at all (like points, for example)
+		internal static HashSet<ItemObject> prohibitedItemsForStack = []; // Left here for legacy purposes
 
 		internal static string ModPath = string.Empty;
 

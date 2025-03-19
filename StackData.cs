@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MTM101BaldAPI.Registers;
+using UnityEngine;
 
 namespace StackableItems
 {
@@ -46,8 +47,19 @@ namespace StackableItems
 	{
 		public static int GetStackFromSelItem(this ItemManager man) =>
 			StackData.i.itemStacks[man.selectedItem];
-			
-		public static bool IsItemAllowed(this ItemObject item) =>
-			!StackableItemsPlugin.prohibitedItemsForStack.Contains(item);
+
+		public static bool IsItemAllowed(this ItemObject item)
+		{
+			if (item.itemType == Items.None || StackableItemsPlugin.prohibitedItemsForStack.Contains(item))
+				return false;
+			var meta = item.GetMeta();
+			return meta == null || !meta.flags.HasFlag(ItemFlags.MultipleUse) || !meta.tags.Contains(StackableItemsPlugin.notAllowStackTag);
+		}
+
+		public static bool IsItemFullyIgnored(this ItemObject item)
+		{
+			var meta = item.GetMeta();
+			return meta != null && (meta.flags.HasFlag(ItemFlags.InstantUse) || meta.tags.Contains(StackableItemsPlugin.fullyIgnoreItemTag));
+		}
 	}
 }
