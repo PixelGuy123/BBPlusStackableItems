@@ -53,7 +53,7 @@ namespace StackableItems
 			if (item.itemType == Items.None || StackableItemsPlugin.prohibitedItemsForStack.Contains(item))
 				return false;
 			var meta = item.GetMeta();
-			return meta == null || !meta.flags.HasFlag(ItemFlags.MultipleUse) || !meta.tags.Contains(StackableItemsPlugin.notAllowStackTag);
+			return meta == null || (!meta.flags.HasFlag(ItemFlags.MultipleUse) && !meta.tags.Contains(StackableItemsPlugin.notAllowStackTag));
 		}
 
 		public static bool IsItemFullyIgnored(this ItemObject item)
