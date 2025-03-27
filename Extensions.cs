@@ -17,7 +17,7 @@ namespace StackableItems
 			for (int z = 0; z <= itm.maxItem; z++)
 			{
 				//Debug.Log("current slot: " + i + " >> " + itm.items[i].itemType);
-				if (!itm.IsSlotLocked(i) && StackData.i.IsStackWithinLimit(i) && itm.items[i].itemType == itb.itemType)
+				if (!itm.IsSlotLocked(i) && StackData.i.IsStackWithinLimit(i) && itm.items[i] == itb)
 					return i;
 				i = (i + 1) % max;
 			}
