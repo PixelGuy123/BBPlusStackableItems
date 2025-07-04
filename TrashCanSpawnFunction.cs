@@ -1,6 +1,4 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace StackableItems
@@ -56,7 +54,7 @@ namespace StackableItems
 		public static void AddTrashAmountToCategory(RoomCategory cat, int amountOfTrashes) =>
 			roomAmount.Add(cat, amountOfTrashes);
 
-		readonly static Dictionary<RoomCategory, int> roomAmount = new() { { RoomCategory.Class, 1}, { RoomCategory.Faculty, 4}, { RoomCategory.Office, 2 } };
+		readonly static Dictionary<RoomCategory, int> roomAmount = new() { { RoomCategory.Class, 1 }, { RoomCategory.Faculty, 4 }, { RoomCategory.Office, 2 } };
 	}
 
 	public class Structure_GenericEnvironmentSpawner : StructureBuilder

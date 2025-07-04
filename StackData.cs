@@ -12,7 +12,7 @@ namespace StackableItems
 
 		public bool IsStackWithinLimit(int index) =>
 			itemStacks[index] < maximumStackAllowed;
-		
+
 		void OnDestroy()
 		{
 			cacheFromSaveItems = itemStacks.NewStack();
@@ -22,7 +22,7 @@ namespace StackableItems
 		{
 			if (itemStacks != null)
 				previousItemStacks = itemStacks.NewStack();
-			
+
 		}
 		public void TryLoadPrevItemStack()
 		{
@@ -50,7 +50,7 @@ namespace StackableItems
 
 		public static bool IsItemAllowed(this ItemObject item)
 		{
-			if (item.itemType == Items.None || StackableItemsPlugin.prohibitedItemsForStack.Contains(item))
+			if (item.itemType == Items.None)
 				return false;
 			var meta = item.GetMeta();
 			return meta == null || (!meta.flags.HasFlag(ItemFlags.MultipleUse) && !meta.tags.Contains(StackableItemsPlugin.notAllowStackTag));

@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
-using MTM101BaldAPI.SaveSystem;
-using System.IO;
-using UnityEngine;
-using PixelInternalAPI;
+﻿using System.IO;
+using HarmonyLib;
 using MTM101BaldAPI.OptionsAPI;
+using MTM101BaldAPI.SaveSystem;
+using PixelInternalAPI;
+using UnityEngine;
 
 namespace StackableItems
 {
@@ -12,7 +12,7 @@ namespace StackableItems
 		readonly BepInEx.PluginInfo Info = info;
 		public override BepInEx.PluginInfo pluginInfo => Info;
 		public override void Save(BinaryWriter writer)
-		{ 
+		{
 			writer.Write(StackData.i.itemStacks.Length);
 			StackData.i.itemStacks.Do(writer.Write);
 		}
@@ -51,11 +51,20 @@ namespace StackableItems
 			comp.itemStacks = new int[99]; // There can't be more than 99 slots in a freaking screen, right?
 			StackData.cacheFromSaveItems = null;
 		}
+
+		public override string[] GenerateTags()
+		{
+			if (StackableItemsPlugin.disableTrashCans.Value)
+			{
+				return ["StackableItems_DisableTrashCan"];
+			}
+			return base.GenerateTags();
+		}
 	}
 
 	public class StackableOptionsCat : CustomOptionsCategory
 	{
-		
+
 		public override void Build()
 		{
 			if (Singleton<CoreGameManager>.Instance != null)
@@ -67,7 +76,7 @@ namespace StackableItems
 			CreateText("StackSizeIndicator", "Tip_StackSize", Vector3.up * 25f, MTM101BaldAPI.UI.BaldiFonts.ComicSans24, TMPro.TextAlignmentOptions.Center, new(300f, 75f), Color.black);
 			var displayText = CreateText("StackSizeDisplay", "Opt_StackSizeDisplay", Vector3.down * 25f, MTM101BaldAPI.UI.BaldiFonts.ComicSans24, TMPro.TextAlignmentOptions.Center, new(300f, 75f), Color.black);
 			string localizedText = displayText.text;
-			
+
 
 			AdjustmentBars bar = null; // Workaround to make C# Compiler happy
 			bar = CreateBars(() =>

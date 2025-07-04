@@ -1,5 +1,9 @@
-﻿using BepInEx;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using BepInEx;
 using BepInEx.Bootstrap;
+using BepInEx.Configuration;
 using HarmonyLib;
 using MTM101BaldAPI;
 using MTM101BaldAPI.AssetTools;
@@ -10,16 +14,13 @@ using PixelInternalAPI;
 using PixelInternalAPI.Classes;
 using PixelInternalAPI.Components;
 using PixelInternalAPI.Extensions;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace StackableItems
 {
-	[BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.6.5")]
+	[BepInPlugin("pixelguy.pixelmodding.baldiplus.stackableitems", PluginInfo.PLUGIN_NAME, "1.0.7")]
 	[BepInDependency("mtm101.rulerp.bbplus.baldidevapi", BepInDependency.DependencyFlags.HardDependency)]
 	[BepInDependency("pixelguy.pixelmodding.baldiplus.pixelinternalapi", BepInDependency.DependencyFlags.HardDependency)]
 
@@ -28,6 +29,7 @@ namespace StackableItems
 	public class StackableItemsPlugin : BaseUnityPlugin
 	{
 		public const string notAllowStackTag = "StackableItems_NotAllowStacking", fullyIgnoreItemTag = "StackableItems_FullyIgnoreItem";
+		internal static ConfigEntry<bool> disableTrashCans;
 
 		private void Awake()
 		{
@@ -37,9 +39,9 @@ namespace StackableItems
 			hasAnimationsMod = Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.newanimations");
 			ModPath = AssetLoader.GetModPath(this);
 
-			LoadingEvents.RegisterOnAssetsLoaded(Info, AddTrashCansInEverything(), false);
+			LoadingEvents.RegisterOnAssetsLoaded(Info, AddTrashCansInEverything(), LoadingEventOrder.Pre);
 
-			LoadingEvents.RegisterOnAssetsLoaded(Info, LoadLimitations(), true);
+			disableTrashCans = Config.Bind("Generation Settings", "Disable Trash Cans", false, "If True, Trash Cans will be gone from the generation (but it\'ll still appear at the pitstop).");
 
 			AssetLoader.LoadLocalizationFolder(Path.Combine(ModPath, "Language", "English"), Language.English);
 
@@ -51,7 +53,7 @@ namespace StackableItems
 			});
 
 			CustomOptionsCore.OnMenuInitialize += (optInstance, handler) => handler.AddCategory<StackableOptionsCat>("Stack Config"); // Copypaste from QuarterPouch lmao. I can't figure out the OptionsMenuAPI rn.
-			ModdedSaveSystem.AddSaveLoadAction(this, (bool isSave, string myPath) =>
+			ModdedSaveSystem.AddSaveLoadAction(this, (isSave, myPath) =>
 			{
 				string p = Path.Combine(myPath, stackFileName);
 				if (isSave)
@@ -71,20 +73,6 @@ namespace StackableItems
 		}
 
 		const string stackFileName = "stackMaxSize.txt";
-
-		IEnumerator LoadLimitations()
-		{
-			yield return 1;
-			yield return "Registering unstackable items...";
-
-			if (Chainloader.PluginInfos.ContainsKey("pixelguy.pixelmodding.baldiplus.bbpluslockers")) // The Legacy purpose in question lol
-			{
-				var inf = Chainloader.PluginInfos["pixelguy.pixelmodding.baldiplus.bbpluslockers"].Instance.Info;
-				prohibitedItemsForStack.Add(ItemMetaStorage.Instance.FindByEnumFromMod(EnumExtensions.GetFromExtendedName<Items>("Lockpick"), inf).value);
-			}
-
-			yield break;
-		}
 
 		IEnumerator AddTrashCansInEverything()
 		{
@@ -132,8 +120,11 @@ namespace StackableItems
 
 			yield return "Adding Trash Can prefab to the room assets...";
 
-			GenericExtensions.FindResourceObjects<RoomAsset>().DoIf(x => x.type == RoomType.Room && allowedCats.Contains(x.category),
-				x => { x.AddRoomFunctionToContainer<TrashCanSpawnFunction>(); allowedCats.Remove(x.category); });
+			if (!disableTrashCans.Value)
+			{
+				GenericExtensions.FindResourceObjects<RoomAsset>().DoIf(x => x.type == RoomType.Room && allowedCats.Contains(x.category),
+					x => { x.AddRoomFunctionToContainer<TrashCanSpawnFunction>(); allowedCats.Remove(x.category); });
+			}
 
 			yield return "Adding a Trash Can to the pitstop...";
 
@@ -156,10 +147,6 @@ namespace StackableItems
 
 			yield break;
 		}
-		[System.Obsolete($"Include the \"{notAllowStackTag}\" tag inside of your item meta data.")]
-		public static HashSet<ItemObject> NonStackableItems => prohibitedItemsForStack;
-
-		internal static HashSet<ItemObject> prohibitedItemsForStack = []; // Left here for legacy purposes
 
 		internal static string ModPath = string.Empty;
 
